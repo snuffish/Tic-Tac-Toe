@@ -1,10 +1,17 @@
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from './env.ts';
 import p5 from 'p5';
 
+import { useGameStore } from './store.ts';
+
 export const changePlayer = () => {
-  window.currentPlayer =
-    window.currentPlayer === 'player1' ? 'player2' : 'player1';
+  const { currentPlayer } = useGameStore.getState();
+  useGameStore.getState().actions.setCurrentPlayer(
+    currentPlayer === 'player1' ? 'player2' : 'player1'
+  );
 };
+
+export type RGB = [number, number, number];
+export type Color = 'NONE' | 'RED' | 'GREEN' | 'BLUE';
 
 export const COLOR: Record<Color, RGB> = {
   NONE: [0, 0, 0],
@@ -22,7 +29,9 @@ const createPlayer = (name: string, symbol: string, color: RGB) => ({
 export const Player = {
   player1: createPlayer('Player 1', 'X', COLOR.GREEN),
   player2: createPlayer('Player 2', 'O', COLOR.RED)
-};
+} as const;
+
+export type PlayerKey = keyof typeof Player;
 
 export const renderText = (p: p5, text: string, color: RGB) => {
   p.push();
@@ -40,6 +49,6 @@ export const renderButton = (p: p5) => {
   const button = p.createButton('New Game')
   button.position(CANVAS_WIDTH / 2, CANVAS_HEIGHT * 0.9)
   button.mousePressed(() => {
-    window.game?.resetGame()
+    useGameStore.getState().gameInstance?.resetGame()
   })
 }

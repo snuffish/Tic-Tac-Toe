@@ -1,6 +1,8 @@
 import p5 from 'p5';
 import { changePlayer, Player } from '../helper.ts';
+import type { PlayerKey } from '../helper.ts';
 import { BOX_SIZE } from '../env.ts';
+import { useGameStore } from '../store.ts';
 
 export type BoxProps = {
   nr: number;
@@ -17,9 +19,7 @@ export const Box = (
   let marked = false;
   let mouseOver = false;
 
-  let mousePressed = false;
-
-  let takenByPlayer: keyof typeof Player | null = null;
+  let takenByPlayer: PlayerKey | null = null;
 
   const isMouseOver = () => {
     const { mouseX, mouseY } = p;
@@ -37,59 +37,41 @@ export const Box = (
     takenByPlayer = null;
   };
 
-  document.addEventListener('onMousePressed', () => {
-    mousePressed = true;
-  });
-
-  document.addEventListener('onMouseReleased', () => {
-    mousePressed = false;
-  });
-
-  document.addEventListener('onBoxPressed', (e) => {
-    const { player, boxNr } = e.detail;
-
-    if (boxNr === nr) {
-      takenByPlayer = player;
+  useGameStore.subscribe((state, prevState) => {
+    // onBoxPressed
+    if (state.lastBoxPressed !== prevState.lastBoxPressed && state.lastBoxPressed?.boxNr === nr) {
+      takenByPlayer = state.lastBoxPressed.player;
     }
-  });
-
-  document.addEventListener('onBoxReset', (e) => {
-    const { boxNr } = e.detail;
-
-    if (boxNr === nr) {
+    // onBoxReset
+    if (state.lastBoxReset !== prevState.lastBoxReset && state.lastBoxReset?.boxNr === nr) {
+      resetBox();
+    }
+    // onGameReset
+    if (state.lastGameReset !== prevState.lastGameReset) {
       resetBox();
     }
   });
 
-  document.addEventListener('onGameReset', () => {
-    resetBox();
-  });
-
   const onUpdate = () => {
     mouseOver = isMouseOver();
+    const { mousePressed, currentPlayer } = useGameStore.getState();
 
     if (mouseOver && mousePressed && !marked) {
       marked = true;
       onClicked?.();
 
-      document.dispatchEvent(
-        new CustomEvent('onBoxPressed', {
-          detail: {
-            boxNr: nr,
-            player: window.currentPlayer
-          }
-        })
-      );
+      useGameStore.getState().actions.triggerBoxPressed(currentPlayer, nr);
 
       changePlayer();
     }
   };
 
   const onDraw = () => {
+    const { currentPlayer, gameWinner } = useGameStore.getState();
     p.push();
 
     if (mouseOver) {
-      p.stroke(Player[window.currentPlayer].color);
+      p.stroke(Player[currentPlayer].color);
       p.strokeWeight(3);
     }
 
@@ -99,7 +81,7 @@ export const Box = (
     if (takenByPlayer !== null) {
       p.push();
 
-      if (window.gameWinner) {
+      if (gameWinner) {
         p.fill(100, 100, 100);
       } else {
         p.fill(Player[takenByPlayer].color);

@@ -2,16 +2,18 @@ import p5 from 'p5';
 import { BOX_SIZE, CANVAS_HEIGHT, CANVAS_WIDTH } from './env.ts';
 import { Box } from './components/box.ts';
 import { GameHud } from './components/game-hud.ts';
+import { useGameStore } from './store.ts';
+import type { PlayerKey } from './helper.ts';
 
 const GRID_SIZE = 3;
 const BOX_GAP = 1;
 const MAX_ACTIVE_BOXES_PER_PLAYER = 3;
 
-type Cell = Player | null;
+type Cell = PlayerKey | null;
 type Board = Cell[][];
 type MatchStatus =
   | { state: 'playing' }
-  | { state: 'won'; winner: Player; cells: Array<[number, number]> }
+  | { state: 'won'; winner: PlayerKey; cells: Array<[number, number]> }
   | { state: 'draw' };
 
 export type GameProps = ReturnType<typeof Game>
@@ -133,9 +135,9 @@ const Game = (p: p5) => {
 
   let board = createBoard();
 
-  const playerMoves: Record<Player, number[]> = {
-    player1: [],
-    player2: []
+  const playerMoves = {
+    player1: [] as number[],
+    player2: [] as number[]
   };
 
   let matchStatus: MatchStatus = { state: 'playing' };
@@ -147,11 +149,12 @@ const Game = (p: p5) => {
     playerMoves.player2.length = 0;
     matchStatus = { state: 'playing' };
 
-    window.currentPlayer = 'player1';
-    window.gameWinner = null;
-    window.mousePressed = false;
+    const { actions } = useGameStore.getState();
+    actions.setCurrentPlayer('player1');
+    actions.setGameWinner(null);
+    actions.setMousePressed(false);
+    actions.triggerGameReset();
 
-    document.dispatchEvent(new CustomEvent('onGameReset'));
     p.loop();
   };
 
@@ -160,7 +163,7 @@ const Game = (p: p5) => {
 
     if (matchStatus.state === 'won') {
       console.log(`Winner: ${matchStatus.winner}`);
-      window.gameWinner = matchStatus.winner;
+      useGameStore.getState().actions.setGameWinner(matchStatus.winner);
       // p.noLoop();
       return;
     }
@@ -182,35 +185,30 @@ const Game = (p: p5) => {
     hud.onDraw();
   };
 
-  document.addEventListener('onBoxPressed', (e) => {
-    if (matchStatus.state !== 'playing') return;
+  useGameStore.subscribe((state, prevState) => {
+    if (state.lastBoxPressed !== prevState.lastBoxPressed && state.lastBoxPressed) {
+      if (matchStatus.state !== 'playing') return;
 
-    const { player, boxNr } = e.detail;
-    const { row, col } = getCellPosition(boxNr);
+      const { player, boxNr } = state.lastBoxPressed;
+      const { row, col } = getCellPosition(boxNr);
 
-    if (board[row][col] !== null) return;
+      if (board[row][col] !== null) return;
 
-    board[row][col] = player;
-    playerMoves[player].push(boxNr);
+      board[row][col] = player;
+      playerMoves[player].push(boxNr);
 
-    if (playerMoves[player].length > MAX_ACTIVE_BOXES_PER_PLAYER) {
-      const oldestBoxNr = playerMoves[player].shift();
+      if (playerMoves[player].length > MAX_ACTIVE_BOXES_PER_PLAYER) {
+        const oldestBoxNr = playerMoves[player].shift();
 
-      if (oldestBoxNr !== undefined) {
-        const oldestCell = getCellPosition(oldestBoxNr);
-        board[oldestCell.row][oldestCell.col] = null;
-
-        document.dispatchEvent(
-          new CustomEvent('onBoxReset', {
-            detail: {
-              boxNr: oldestBoxNr
-            }
-          })
-        );
+        if (oldestBoxNr !== undefined) {
+          const oldestCell = getCellPosition(oldestBoxNr);
+          board[oldestCell.row][oldestCell.col] = null;
+          useGameStore.getState().actions.triggerBoxReset(oldestBoxNr);
+        }
       }
-    }
 
-    checkMatchStatus();
+      checkMatchStatus();
+    }
   });
 
   return {
@@ -225,9 +223,10 @@ const sketch = (p: p5) => {
   p.setup = () => {
     p.createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
     p.background(240);
-    window.currentPlayer = 'player1';
-    window.gameWinner = null;
-    window.game = game;
+    const { actions } = useGameStore.getState();
+    actions.setCurrentPlayer('player1');
+    actions.setGameWinner(null);
+    actions.setGameInstance(game);
   };
 
   p.draw = () => {
@@ -239,14 +238,12 @@ const sketch = (p: p5) => {
 
   p.mousePressed = () => {
     p.noLoop();
-    document.dispatchEvent(new CustomEvent('onMousePressed'));
-    window.mousePressed = true;
+    useGameStore.getState().actions.setMousePressed(true);
   };
 
   p.mouseReleased = () => {
     p.loop();
-    document.dispatchEvent(new CustomEvent('onMouseReleased'));
-    window.mousePressed = false;
+    useGameStore.getState().actions.setMousePressed(false);
   };
 
   p.keyPressed = () => {
