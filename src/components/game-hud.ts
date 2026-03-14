@@ -1,28 +1,39 @@
-import p5 from "p5";
-import {CANVAS_HEIGHT, CANVAS_WIDTH} from "../env.ts";
-import {COLOR, Player} from "../helper.ts";
+import p5 from 'p5';
+import { Player, renderButton, renderText } from '../helper.ts';
 
 export const GameHud = (p: p5): GameObject => {
-    let text = ''
-    let color: RGB = COLOR.NONE
+  const onUpdate = () => {};
 
-    const onUpdate = () => {
-        text = Player.Name[window.currentPlayer]
+  const onPlayerTurn = () => {
+    renderText(
+      p,
+      `Its ${Player[window.currentPlayer].name} turn!`,
+      Player[window.currentPlayer].color
+    );
+  };
+
+  const onGameWinner = () => {
+    if (!window.gameWinner) return
+
+    renderText(
+      p,
+      `The winner is ${window.gameWinner}`,
+      Player[window.gameWinner].color
+    );
+
+    renderButton(p)
+  };
+
+  const onDraw = () => {
+    if (window.gameWinner) {
+      onGameWinner();
+    } else {
+      onPlayerTurn();
     }
+  };
 
-    const onDraw = () => {
-        p.push()
-        p.textAlign('center')
-
-        p.fill(color)
-
-        const bounds = p.textBounds(text, 0, CANVAS_HEIGHT * 0.85, CANVAS_WIDTH)
-        p.text(text, 0, bounds.y, CANVAS_WIDTH)
-        p.pop()
-    }
-
-    return {
-        onDraw,
-        onUpdate
-    }
-}
+  return {
+    onDraw,
+    onUpdate
+  };
+};

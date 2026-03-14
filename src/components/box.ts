@@ -1,90 +1,125 @@
-import p5 from "p5";
-import {changePlayer, Player} from "../helper.ts";
-import {BOX_SIZE} from "../env.ts";
+import p5 from 'p5';
+import { changePlayer, Player } from '../helper.ts';
+import { BOX_SIZE } from '../env.ts';
 
 export type BoxProps = {
-    nr: number, x: number, y: number, diameter?: number, onClicked?: () => void
+  nr: number;
+  x: number;
+  y: number;
+  diameter?: number;
+  onClicked?: () => void;
 };
-export const Box = (p: p5, {nr, x, y, diameter = BOX_SIZE, onClicked}: BoxProps): GameObject => {
-    let marked = false
-    let mouseOver = false
 
-    let mousePressed = false
+export const Box = (
+  p: p5,
+  { nr, x, y, diameter = BOX_SIZE, onClicked }: BoxProps
+): GameObject & Pick<BoxProps, 'nr'> => {
+  let marked = false;
+  let mouseOver = false;
 
-    let takenByPlayer: typeof window.currentPlayer
+  let mousePressed = false;
 
-    const isMouseOver = () => {
-        const {mouseX, mouseY} = p
+  let takenByPlayer: keyof typeof Player | null = null;
 
-        return mouseX >= x &&
-            mouseX <= x + diameter &&
-            mouseY >= y &&
-            mouseY <= y + diameter
+  const isMouseOver = () => {
+    const { mouseX, mouseY } = p;
+
+    return (
+      mouseX >= x &&
+      mouseX <= x + diameter &&
+      mouseY >= y &&
+      mouseY <= y + diameter
+    );
+  };
+
+  const resetBox = () => {
+    marked = false;
+    takenByPlayer = null;
+  };
+
+  document.addEventListener('onMousePressed', () => {
+    mousePressed = true;
+  });
+
+  document.addEventListener('onMouseReleased', () => {
+    mousePressed = false;
+  });
+
+  document.addEventListener('onBoxPressed', (e) => {
+    const { player, boxNr } = e.detail;
+
+    if (boxNr === nr) {
+      takenByPlayer = player;
+    }
+  });
+
+  document.addEventListener('onBoxReset', (e) => {
+    const { boxNr } = e.detail;
+
+    if (boxNr === nr) {
+      resetBox();
+    }
+  });
+
+  document.addEventListener('onGameReset', () => {
+    resetBox();
+  });
+
+  const onUpdate = () => {
+    mouseOver = isMouseOver();
+
+    if (mouseOver && mousePressed && !marked) {
+      marked = true;
+      onClicked?.();
+
+      document.dispatchEvent(
+        new CustomEvent('onBoxPressed', {
+          detail: {
+            boxNr: nr,
+            player: window.currentPlayer
+          }
+        })
+      );
+
+      changePlayer();
+    }
+  };
+
+  const onDraw = () => {
+    p.push();
+
+    if (mouseOver) {
+      p.stroke(Player[window.currentPlayer].color);
+      p.strokeWeight(3);
     }
 
-    document.addEventListener('onMousePressed', () => {
-        mousePressed = true
-    })
+    p.square(x, y, diameter);
+    p.pop();
 
-    document.addEventListener('onMouseReleased', () => {
-        mousePressed = false
-    })
+    if (takenByPlayer !== null) {
+      p.push();
 
-    const onUpdate = () => {
-        mouseOver = isMouseOver()
+      if (window.gameWinner) {
+        p.fill(100, 100, 100);
+      } else {
+        p.fill(Player[takenByPlayer].color);
+      }
 
-        if (mouseOver && mousePressed) {
-            marked = !marked
-            onClicked?.()
-
-            takenByPlayer = window.currentPlayer
-
-            document.dispatchEvent(new CustomEvent('onBoxPressed', {
-                detail: {
-                    boxNr: nr,
-                    Player: takenByPlayer,
-                }
-            }))
-
-            changePlayer()
-        }
+      p.textFont('Arial', 20);
+      p.textAlign('center', 'center');
+      p.text(Player[takenByPlayer].symbol, x, y, diameter, diameter);
+      p.pop();
     }
 
-    const onDraw = () => {
-        p.push()
+    p.stroke(0);
+    p.strokeWeight(1);
+  };
 
-        if (mouseOver) {
-            p.stroke(Player.Color[window.currentPlayer])
-            p.strokeWeight(3)
-        }
-
-        p.square(x, y, diameter)
-        p.pop()
-
-        p.push()
-        p.fill(Player.Color[takenByPlayer])
-        p.textFont('Arial', 20)
-        p.textAlign('center', 'center')
-
-        const getText = () => {
-            if (marked) {
-                return `${Player.Symbol[takenByPlayer]}`
-            }
-
-            return ''
-        }
-        p.text(getText(), x, y, diameter, diameter)
-        p.pop()
-
-        p.stroke(0)
-        p.strokeWeight(1)
-    }
-
-    return {
-        get takenByPlayer() {
-            return takenByPlayer
-        },
-        onUpdate,
-        onDraw
-    }
-}
+  return {
+    get nr() {
+      return nr;
+    },
+    onUpdate,
+    onDraw
+  };
+};
