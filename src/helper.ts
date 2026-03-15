@@ -4,10 +4,8 @@ import p5 from 'p5';
 import { useGameStore } from './store.ts';
 
 export const changePlayer = () => {
-  const { currentPlayer } = useGameStore.getState();
-  useGameStore.getState().actions.setCurrentPlayer(
-    currentPlayer === 'player1' ? 'player2' : 'player1'
-  );
+  window.currentPlayer =
+    window.currentPlayer === 'player1' ? 'player2' : 'player1';
 };
 
 export type RGB = [number, number, number];
@@ -46,9 +44,9 @@ export const renderText = (p: p5, text: string, color: RGB) => {
 };
 
 export const renderButton = (p: p5) => {
-  const button = p.createButton('New Game')
-  button.position(CANVAS_WIDTH / 2, CANVAS_HEIGHT * 0.9)
+  const button = p.createButton('New Game');
+  button.position(CANVAS_WIDTH / 2, CANVAS_HEIGHT * 0.9);
   button.mousePressed(() => {
-    useGameStore.getState().gameInstance?.resetGame()
-  })
-}
+    useGameStore.getState().gameInstance?.resetGame();
+  });
+};
