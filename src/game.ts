@@ -11,11 +11,6 @@ const sketch = (p: p5) => {
     p.background(240);
   };
 
-  const color = {
-    red: [255, 0, 0],
-    blue: [0, 0, 255]
-  };
-
   const drawX = (x: number, y: number) => {
     p.push();
     p.translate(x, y);
@@ -23,7 +18,7 @@ const sketch = (p: p5) => {
     const centerOrigin = SQUARE_SIZE / 2;
     const originOffset = centerOrigin / 2;
 
-    p.stroke(color.red);
+    p.stroke('red');
 
     p.line(
       centerOrigin - originOffset,
@@ -44,7 +39,7 @@ const sketch = (p: p5) => {
     p.push();
     p.translate(x, y);
 
-    p.stroke(color.blue);
+    p.stroke('blue');
 
     const centerOrigin = SQUARE_SIZE / 2;
     const diameter = SQUARE_SIZE / 2;
