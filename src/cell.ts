@@ -9,6 +9,7 @@ export type CellStateProps = {
   hover: boolean;
 };
 
+export type Cell = ReturnType<typeof cell>;
 export const cell = (p: p5, magicNumber: number) => {
   const state: CellStateProps = {
     x: 0,
@@ -42,25 +43,36 @@ export const cell = (p: p5, magicNumber: number) => {
     state.y = y;
   };
 
+  const setMarkedByPlayer = (player: Player) => {
+    if (!state.enabled) {
+      return;
+    }
+
+    state.markedByPlayer = player;
+  };
+
+  const setHover = (hover: boolean) => {
+    if (!state.enabled) {
+      return;
+    }
+
+    state.hover = hover;
+  };
+
+  const setEnabled = (enabled: boolean) => {
+    state.enabled = enabled;
+  };
+
   return {
     magicNumber,
-    setMarkedByPlayer: (player: Player) => {
-      if (!state.enabled) {
-        return;
-      }
-
-      state.markedByPlayer = player;
+    setMarkedByPlayer,
+    setEnabled,
+    setHover,
+    get position() {
+      return { x: state.x, y: state.y };
     },
-    setHover: (hover: boolean) => {
-      if (!state.enabled) {
-        return;
-      }
-
-      state.hover = hover;
-    },
-    isHover: () => state.hover,
-    setEnabled: (enabled: boolean) => {
-      state.enabled = enabled;
+    get isHover() {
+      return state.hover;
     },
     get markedByPlayer() {
       return state.markedByPlayer;

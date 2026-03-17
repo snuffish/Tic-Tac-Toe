@@ -1,6 +1,6 @@
 import p5 from 'p5';
-import type { Cell, GameStateProps } from './types/types';
-import { cell } from './cell.ts';
+import type { GameStateProps } from './types/types';
+import { type Cell, cell } from './cell.ts';
 
 export const CELL_SIZE = 50;
 export const GAP_SIZE = 0;
@@ -87,7 +87,6 @@ const sketch = (p: p5) => {
           player: status.winner,
           cells: status.cells
         };
-        console.log('WINNER ==>', status.winner, 'CELLS===>', status.cells);
       } else {
         nextTurn();
       }
@@ -121,6 +120,14 @@ const sketch = (p: p5) => {
   //   p.pop();
   // };
 
+  const drawWinningRow = () => {
+    if (!gameState.winner) {
+      return;
+    }
+
+    const { cells } = gameState.winner;
+  };
+
   p.draw = () => {
     if (gameState.winner) {
       gameState.board.flat().forEach((cell) => {
@@ -139,6 +146,7 @@ const sketch = (p: p5) => {
     });
 
     if (gameState.winner) {
+      drawWinningRow();
       p.text('WINNER', 50, 50);
     }
   };

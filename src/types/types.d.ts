@@ -1,4 +1,4 @@
-import type { cell } from '../game.ts';
+import type { cell } from '../cell.ts';
 
 export type GameStateProps = {
   board: Cell[][];
@@ -8,5 +8,3 @@ export type GameStateProps = {
     cells: Cell[];
   };
 };
-
-export type Cell = ReturnType<typeof cell>;
