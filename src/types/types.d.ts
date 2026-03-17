@@ -1,7 +1,10 @@
 import type { cell } from '../cell.ts';
 
 export type GameStateProps = {
-  board: Cell[][];
+  board: {
+    position: { x: number; y: number };
+    cells: Cell[][];
+  };
   currentPlayer: Player;
   winner?: {
     player: Player;

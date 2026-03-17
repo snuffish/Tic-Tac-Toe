@@ -19,10 +19,12 @@ export const cell = (p: p5, magicNumber: number) => {
     hover: false
   };
 
-  const draw = () => {
+  const display = () => {
     p.push();
-    if (state.hover) {
-      p.strokeWeight(5);
+    if (state.hover && !state.markedByPlayer) {
+      p.fill('yellow');
+    } else {
+      p.fill('white');
     }
     p.square(state.x, state.y, CELL_SIZE);
     p.pop();
@@ -52,10 +54,6 @@ export const cell = (p: p5, magicNumber: number) => {
   };
 
   const setHover = (hover: boolean) => {
-    if (!state.enabled) {
-      return;
-    }
-
     state.hover = hover;
   };
 
@@ -71,15 +69,15 @@ export const cell = (p: p5, magicNumber: number) => {
     get position() {
       return { x: state.x, y: state.y };
     },
-    get isHover() {
+    isHover() {
       return state.hover;
     },
     get markedByPlayer() {
       return state.markedByPlayer;
     },
     setPosition,
-    draw
-  };
+    display
+  } as const;
 };
 
 const drawX = (p: p5, x: number, y: number) => {

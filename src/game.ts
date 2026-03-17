@@ -5,8 +5,12 @@ import { type Cell, cell } from './cell.ts';
 export const CELL_SIZE = 50;
 export const GAP_SIZE = 0;
 
-export const CANVAS_HEIGHT = (CELL_SIZE + GAP_SIZE) * 3;
-export const CANVAS_WIDTH = (CELL_SIZE + GAP_SIZE) * 3;
+const BOARD_WIDTH = (CELL_SIZE + GAP_SIZE) * 3;
+const BOARD_HEIGHT = (CELL_SIZE + GAP_SIZE) * 3;
+const BOARD_PADDING = 10;
+
+const CANVAS_WIDTH = BOARD_WIDTH + 100;
+const CANVAS_HEIGHT = BOARD_HEIGHT + 100;
 
 const sketch = (p: p5) => {
   p.setup = () => {
@@ -16,11 +20,14 @@ const sketch = (p: p5) => {
 
   const gameState: GameStateProps = {
     currentPlayer: 'player1',
-    board: [
-      [cell(p, 2), cell(p, 7), cell(p, 6)],
-      [cell(p, 9), cell(p, 5), cell(p, 1)],
-      [cell(p, 4), cell(p, 3), cell(p, 8)]
-    ]
+    board: {
+      position: { x: 20, y: 40 },
+      cells: [
+        [cell(p, 2), cell(p, 7), cell(p, 6)],
+        [cell(p, 9), cell(p, 5), cell(p, 1)],
+        [cell(p, 4), cell(p, 3), cell(p, 8)]
+      ]
+    }
   };
 
   const nextTurn = () => {
@@ -30,7 +37,7 @@ const sketch = (p: p5) => {
 
   const checkGameStatus = (): { winner: Player; cells: Cell[] } | null => {
     const checkBoard = (player: Player) => {
-      const cells = gameState.board
+      const cells = gameState.board.cells
         .flat()
         .filter((cell) => cell.markedByPlayer === player);
       const magicNumberSum = cells.reduce(
@@ -58,14 +65,26 @@ const sketch = (p: p5) => {
   };
 
   const getCellByMousePosition = () => {
-    const row = p.floor(p.map(p.mouseY, 0, CANVAS_HEIGHT, 0, 3));
-    const col = p.floor(p.map(p.mouseX, 0, CANVAS_WIDTH, 0, 3));
+    const localX = p.mouseX - gameState.board.position.x;
+    const localY = p.mouseY - gameState.board.position.y;
 
-    if (!gameState.board[row]?.[col]) {
+    if (
+      localX < 0 ||
+      localY < 0 ||
+      localX >= BOARD_WIDTH ||
+      localY >= BOARD_HEIGHT
+    ) {
       return null;
     }
 
-    const cell = gameState.board[row][col];
+    const col = p.floor(localX / CELL_SIZE);
+    const row = p.floor(localY / CELL_SIZE);
+
+    const cell = gameState.board.cells[row]?.[col];
+    if (!cell) {
+      return null;
+    }
+
     return [cell, row, col] as const;
   };
 
@@ -79,7 +98,7 @@ const sketch = (p: p5) => {
 
     if (cell.markedByPlayer === null) {
       cell.setMarkedByPlayer(gameState.currentPlayer);
-      gameState.board[row][col] = cell;
+      gameState.board.cells[row][col] = cell;
 
       const status = checkGameStatus();
       if (status) {
@@ -95,7 +114,7 @@ const sketch = (p: p5) => {
 
   p.mouseMoved = () => {
     // Clear previous hover
-    gameState.board
+    gameState.board.cells
       .flat()
       .filter((c) => c.isHover())
       .forEach((cell) => cell.setHover(false));
@@ -105,8 +124,25 @@ const sketch = (p: p5) => {
       return;
     }
 
+    console.log(hit);
+
     const [cell] = hit;
     cell.setHover(true);
+  };
+
+  const drawLine = (cells: Cell[]) => {
+    const xArr = cells.map((cell) => cell.position.x);
+    const yArr = cells.map((cell) => cell.position.y);
+
+    p.push();
+    p.strokeWeight(3);
+    // p.line(
+    //   fromCell.position.x,
+    //   fromCell.position.y,
+    //   toCell.position.x,
+    //   toCell.position.y
+    // );
+    p.pop();
   };
 
   // const drawLine = () => {
@@ -130,20 +166,29 @@ const sketch = (p: p5) => {
 
   p.draw = () => {
     if (gameState.winner) {
-      gameState.board.flat().forEach((cell) => {
+      gameState.board.cells.flat().forEach((cell) => {
         cell.setHover(false);
         cell.setEnabled(false);
       });
     }
 
-    gameState.board.map((row, rowIndex) => {
+    p.translate(gameState.board.position.x, gameState.board.position.y);
+
+    gameState.board.cells.map((row, rowIndex) => {
       row.map((cell, cellIndex) => {
         const x = cellIndex * CELL_SIZE;
         const y = rowIndex * CELL_SIZE;
         cell.setPosition(x, y);
-        cell.draw();
+        cell.display();
       });
     });
+
+    const cellArr = [
+      gameState.board.cells[0][0],
+      gameState.board.cells[1][1],
+      gameState.board.cells[2][2]
+    ];
+    drawLine(cellArr);
 
     if (gameState.winner) {
       drawWinningRow();
