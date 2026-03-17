@@ -1,108 +1,36 @@
 import p5 from 'p5';
-import type { Cell, CellStateProps, GameStateProps } from './types/types';
+import type { Cell, GameStateProps } from './types/types';
+import { cell } from './cell.ts';
 
-const SQUARE_SIZE = 50;
+export const CELL_SIZE = 50;
+export const GAP_SIZE = 0;
 
-const CANVAS_HEIGHT = SQUARE_SIZE * 3;
-const CANVAS_WIDTH = SQUARE_SIZE * 3;
-
-const cell = (p: p5, magicNumber: number) => {
-  const state: CellStateProps = {
-    x: 0,
-    y: 0,
-    markedByPlayer: null
-  };
-
-  const draw = () => {
-    if (state.markedByPlayer === null) {
-      return null;
-    }
-
-    if (state.markedByPlayer === 'player1') {
-      drawX(p, state.x, state.y);
-    } else {
-      drawO(p, state.x, state.y);
-    }
-  };
-
-  const setPosition = (x: number, y: number) => {
-    state.x = x;
-    state.y = y;
-  };
-
-  return {
-    magicNumber,
-    setMarkedByPlayer: (player: Player) => {
-      state.markedByPlayer = player;
-    },
-    get markedByPlayer() {
-      return state.markedByPlayer;
-    },
-    setPosition,
-    draw
-  };
-};
-
-const drawX = (p: p5, x: number, y: number) => {
-  p.push();
-  p.translate(x, y);
-
-  const centerOrigin = SQUARE_SIZE / 2;
-  const originOffset = centerOrigin / 2;
-
-  p.stroke('red');
-
-  p.line(
-    centerOrigin - originOffset,
-    originOffset,
-    centerOrigin + originOffset,
-    SQUARE_SIZE - originOffset
-  );
-  p.line(
-    SQUARE_SIZE - originOffset,
-    originOffset,
-    originOffset,
-    SQUARE_SIZE - originOffset
-  );
-  p.pop();
-};
-
-const drawO = (p: p5, x: number, y: number) => {
-  p.push();
-  p.translate(x, y);
-
-  p.stroke('blue');
-
-  const centerOrigin = SQUARE_SIZE / 2;
-  const diameter = SQUARE_SIZE / 2;
-
-  p.circle(centerOrigin, centerOrigin, diameter);
-  p.pop();
-};
+export const CANVAS_HEIGHT = (CELL_SIZE + GAP_SIZE) * 3;
+export const CANVAS_WIDTH = (CELL_SIZE + GAP_SIZE) * 3;
 
 const sketch = (p: p5) => {
   p.setup = () => {
     p.createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
     p.background(240);
   };
-  const gameState: GameStateProps = {
-    currentPlayer: 'player1'
-  };
 
-  const board = [
-    [cell(p, 2), cell(p, 7), cell(p, 6)],
-    [cell(p, 9), cell(p, 5), cell(p, 1)],
-    [cell(p, 4), cell(p, 3), cell(p, 8)]
-  ];
+  const gameState: GameStateProps = {
+    currentPlayer: 'player1',
+    board: [
+      [cell(p, 2), cell(p, 7), cell(p, 6)],
+      [cell(p, 9), cell(p, 5), cell(p, 1)],
+      [cell(p, 4), cell(p, 3), cell(p, 8)]
+    ]
+  };
 
   const nextTurn = () => {
     gameState.currentPlayer =
       gameState.currentPlayer === 'player1' ? 'player2' : 'player1';
   };
 
-  const checkGameStatus = (): { winner: Player | null; cells?: Cell[] } => {
+  const checkGameStatus = (): { winner: Player; cells: Cell[] } | null => {
     const checkBoard = (player: Player) => {
-      const cells = board
+      const cells = gameState.board
         .flat()
         .filter((cell) => cell.markedByPlayer === player);
       const magicNumberSum = cells.reduce(
@@ -113,7 +41,7 @@ const sketch = (p: p5) => {
       return {
         magicNumberSum,
         cells
-      } as const;
+      };
     };
 
     const p1 = checkBoard('player1');
@@ -126,24 +54,60 @@ const sketch = (p: p5) => {
       return { winner: 'player2', cells: p2.cells };
     }
 
-    return { winner: null };
+    return null;
   };
 
-  p.mousePressed = () => {
+  const getCellByMousePosition = () => {
     const row = p.floor(p.map(p.mouseY, 0, CANVAS_HEIGHT, 0, 3));
     const col = p.floor(p.map(p.mouseX, 0, CANVAS_WIDTH, 0, 3));
 
-    const boardCell = board[row][col];
-    if (boardCell.markedByPlayer === null) {
-      boardCell.setMarkedByPlayer(gameState.currentPlayer);
-      board[row][col] = boardCell;
-      const status = checkGameStatus();
-      if (status.winner) {
-        console.log('WINNER ==>', status.winner, 'CELLS===>', status.cells);
-      }
-
-      nextTurn();
+    if (!gameState.board[row]?.[col]) {
+      return null;
     }
+
+    const cell = gameState.board[row][col];
+    return [cell, row, col] as const;
+  };
+
+  p.mousePressed = () => {
+    const hit = getCellByMousePosition();
+    if (!hit) {
+      return;
+    }
+
+    const [cell, row, col] = hit;
+
+    if (cell.markedByPlayer === null) {
+      cell.setMarkedByPlayer(gameState.currentPlayer);
+      gameState.board[row][col] = cell;
+
+      const status = checkGameStatus();
+      if (status) {
+        gameState.winner = {
+          player: status.winner,
+          cells: status.cells
+        };
+        console.log('WINNER ==>', status.winner, 'CELLS===>', status.cells);
+      } else {
+        nextTurn();
+      }
+    }
+  };
+
+  p.mouseMoved = () => {
+    // Clear previous hover
+    gameState.board
+      .flat()
+      .filter((c) => c.isHover())
+      .forEach((cell) => cell.setHover(false));
+
+    const hit = getCellByMousePosition();
+    if (!hit) {
+      return;
+    }
+
+    const [cell] = hit;
+    cell.setHover(true);
   };
 
   // const drawLine = () => {
@@ -158,30 +122,28 @@ const sketch = (p: p5) => {
   // };
 
   p.draw = () => {
-    p.background(240);
+    if (gameState.winner) {
+      gameState.board.flat().forEach((cell) => {
+        cell.setHover(false);
+        cell.setEnabled(false);
+      });
+    }
 
-    board.map((row, rowIndex) => {
+    gameState.board.map((row, rowIndex) => {
       row.map((cell, cellIndex) => {
-        const cellPos = cellIndex;
-
-        const size = SQUARE_SIZE;
-
-        const x = cellPos * size;
-        const y = rowIndex * size;
+        const x = cellIndex * CELL_SIZE;
+        const y = rowIndex * CELL_SIZE;
         cell.setPosition(x, y);
-
-        p.square(x, y, size);
-
         cell.draw();
-
-        // drawLine();
       });
     });
+
+    if (gameState.winner) {
+      p.text('WINNER', 50, 50);
+    }
   };
 };
 
 export function mountSketch(container?: HTMLElement) {
   return new p5(sketch, container);
 }
-
-export { cell };
