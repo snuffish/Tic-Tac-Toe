@@ -1,19 +1,17 @@
-import p5 from 'p5';
 import { CELL_SIZE } from './game.ts';
+import type p5 from 'p5';
 
 export type CellStateProps = {
-  x: number;
-  y: number;
+  position: p5.Vector,
   enabled: boolean;
   markedByPlayer: Player | null;
   hover: boolean;
 };
 
 export type Cell = ReturnType<typeof cell>;
-export const cell = (p: p5, magicNumber: number) => {
+export const cell = (p: p5Instance, magicNumber: number) => {
   const state: CellStateProps = {
-    x: 0,
-    y: 0,
+    position: p.createVector(0, 0),
     enabled: true,
     markedByPlayer: null,
     hover: false
@@ -26,7 +24,7 @@ export const cell = (p: p5, magicNumber: number) => {
     } else {
       p.fill('white');
     }
-    p.square(state.x, state.y, CELL_SIZE);
+    p.square(state.position.x, state.position.y, CELL_SIZE);
     p.pop();
 
     if (state.markedByPlayer === null) {
@@ -34,15 +32,14 @@ export const cell = (p: p5, magicNumber: number) => {
     }
 
     if (state.markedByPlayer === 'player1') {
-      drawX(p, state.x, state.y);
+      drawX(p, state.position.x, state.position.y);
     } else {
-      drawO(p, state.x, state.y);
+      drawO(p, state.position.x, state.position.y);
     }
   };
 
   const setPosition = (x: number, y: number) => {
-    state.x = x;
-    state.y = y;
+    state.position = p.createVector(x, y);
   };
 
   const setMarkedByPlayer = (player: Player) => {
@@ -51,6 +48,8 @@ export const cell = (p: p5, magicNumber: number) => {
     }
 
     state.markedByPlayer = player;
+
+    p.updateGameState()
   };
 
   const setHover = (hover: boolean) => {
@@ -67,7 +66,7 @@ export const cell = (p: p5, magicNumber: number) => {
     setEnabled,
     setHover,
     get position() {
-      return { x: state.x, y: state.y };
+      return { x: state.position.x, y: state.position.y };
     },
     isHover() {
       return state.hover;
@@ -80,7 +79,7 @@ export const cell = (p: p5, magicNumber: number) => {
   } as const;
 };
 
-const drawX = (p: p5, x: number, y: number) => {
+const drawX = (p: p5Instance, x: number, y: number) => {
   p.push();
   p.translate(x, y);
 
@@ -104,7 +103,7 @@ const drawX = (p: p5, x: number, y: number) => {
   p.pop();
 };
 
-const drawO = (p: p5, x: number, y: number) => {
+const drawO = (p: p5Instance, x: number, y: number) => {
   p.push();
   p.translate(x, y);
 

@@ -33,7 +33,6 @@ suite('Tic-Tac-Toe Game', () => {
   });
 
   test('Instantiate sketch and interact with the board', () => {
-    // @ts-ignore
     const gameState = p5Instance.gameState;
 
     // The initial turn is player1
@@ -42,7 +41,9 @@ suite('Tic-Tac-Toe Game', () => {
     // Simulate a mouse click over the top-left cell: (row 0, col 0)
     // In game.ts, position.x is 20, position.y is 40.
     // CELL_SIZE is 50. So top-left is x: 20-70, y: 40-90.
+    // @ts-ignore
     p5Instance.mouseX = 30; // Just inside the top-left cell width
+    // @ts-ignore
     p5Instance.mouseY = 50; // Just inside the top-left cell height
 
     p5Instance.mousePressed();
@@ -53,7 +54,9 @@ suite('Tic-Tac-Toe Game', () => {
 
     // Simulate another click over the middle cell: (row 1, col 1)
     // middle cell x: 20 + 50 = 70 to 120. y: 40 + 50 = 90 to 140
+    // @ts-ignore
     p5Instance.mouseX = 80;
+    // @ts-ignore
     p5Instance.mouseY = 100;
 
     p5Instance.mousePressed();

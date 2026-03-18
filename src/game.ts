@@ -15,48 +15,61 @@ const CANVAS_HEIGHT = BOARD_HEIGHT + 100;
 export const checkGameStatus = (
   gameState: GameStateProps
 ): GameStateProps['winner'] | null => {
-  const horizontalCheck = (row: number, player: Player) =>
-    [0, 1, 2].every(
-      (col) => gameState.board.cells[row][col].markedByPlayer === player
-    );
+  const horizontalCheck = (row: number, player: Player) => {
+    const cells = [0, 1, 2].map((col) => gameState.board.cells[row][col]);
+    return cells.every((cell) => cell.markedByPlayer === player) ? cells : null;
+  };
 
-  const verticalCheck = (col: number, player: Player) =>
-    [0, 1, 2].every(
-      (row) => gameState.board.cells[row][col].markedByPlayer === player
-    );
+  const verticalCheck = (col: number, player: Player) => {
+    const cells = [0, 1, 2].map((row) => gameState.board.cells[row][col]);
+    return cells.every((cell) => cell.markedByPlayer === player) ? cells : null;
+  };
 
   const diagonalCheck = (player: Player) => {
-    const topLeftToBottomRight = [0, 1, 2].every(
-      (i) => gameState.board.cells[i][i].markedByPlayer === player
+    const topLeftToBottomRight = [0, 1, 2].map(
+      (i) => gameState.board.cells[i][i]
     );
-    const topRightToBottomLeft = [0, 1, 2].every(
-      (i) => gameState.board.cells[i][2 - i].markedByPlayer === player
+    if (topLeftToBottomRight.every((cell) => cell.markedByPlayer === player)) {
+      return topLeftToBottomRight;
+    }
+
+    const topRightToBottomLeft = [0, 1, 2].map(
+      (i) => gameState.board.cells[i][2 - i]
     );
-    
-    return topLeftToBottomRight || topRightToBottomLeft;
-  }
+    if (topRightToBottomLeft.every((cell) => cell.markedByPlayer === player)) {
+      return topRightToBottomLeft;
+    }
+
+    return null;
+  };
 
   for (const player of ['player1', 'player2'] as const) {
     for (let row = 0; row <= 2; row++) {
-      if (horizontalCheck(row, player)) {
+      const cells = horizontalCheck(row, player);
+      if (cells) {
         return {
-          player
-        }
+          player,
+          cells
+        };
       }
     }
 
     for (let col = 0; col <= 2; col++) {
-      if (verticalCheck(col, player)) {
+      const cells = verticalCheck(col, player);
+      if (cells) {
         return {
-          player
-        }
+          player,
+          cells
+        };
       }
     }
 
-    if (diagonalCheck(player)) {
+    const cells = diagonalCheck(player);
+    if (cells) {
       return {
-        player
-      }
+        player,
+        cells
+      };
     }
   }
 
@@ -64,9 +77,13 @@ export const checkGameStatus = (
 };
 
 const sketch = (p: p5Instance) => {
-  p.setup = () => {
-    p.createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
-    p.background(240);
+  const updateGameState = () => {
+    const winnerStatus = checkGameStatus(gameState);
+    if (winnerStatus) {
+      gameState.winner = winnerStatus;
+    } else {
+      nextTurn();
+    }
   };
 
   const gameState: GameStateProps = {
@@ -81,8 +98,18 @@ const sketch = (p: p5Instance) => {
     }
   };
 
-  // @ts-ignore - Expose gameState to the p5 instance for testing purposes
   p.gameState = gameState;
+  p.updateGameState = updateGameState;
+
+
+  p.setup = () => {
+    p.createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
+    p.background(240);
+    
+    // gameState.board.cells[0][0].setMarkedByPlayer('player1');
+    // gameState.board.cells[0][1].setMarkedByPlayer('player1');
+    // gameState.board.cells[0][2].setMarkedByPlayer('player1');
+  };
 
   const nextTurn = () => {
     gameState.currentPlayer =
@@ -125,30 +152,25 @@ const sketch = (p: p5Instance) => {
       cell.setMarkedByPlayer(gameState.currentPlayer);
       gameState.board.cells[row][col] = cell;
 
-      const status = checkGameStatus(gameState);
-      if (status) {
-        gameState.winner = {
-          player: status.winner
-        };
-      } else {
-        nextTurn();
-      }
+      updateGameState();
     }
   };
 
-  p.mouseMoved = () => {
-    // Clear previous hover
+  const clearHover = () => {
     gameState.board.cells
       .flat()
       .filter((c) => c.isHover())
       .forEach((cell) => cell.setHover(false));
+  };
+
+  p.mouseMoved = () => {
+    // Clear previous hover
+    clearHover();
 
     const hit = getCellByMousePosition();
     if (!hit) {
       return;
     }
-
-    console.log(hit);
 
     const [cell] = hit;
     cell.setHover(true);
@@ -169,17 +191,6 @@ const sketch = (p: p5Instance) => {
     p.pop();
   };
 
-  // const drawLine = () => {
-  //   p.push();
-  //   const vec1 = p.createVector(0);
-  //   const vec2 = p.createVector(3 * SQUARE_SIZE, 3 * SQUARE_SIZE);
-  //
-  //   p.stroke('green')
-  //   p.strokeWeight(3)
-  //   p.line(vec1.x, vec1.y, vec2.x, vec2.y);
-  //   p.pop();
-  // };
-
   const drawWinningRow = () => {
     if (!gameState.winner) {
       return;
@@ -188,14 +199,7 @@ const sketch = (p: p5Instance) => {
     const { player } = gameState.winner;
   };
 
-  p.draw = () => {
-    if (gameState.winner) {
-      gameState.board.cells.flat().forEach((cell) => {
-        cell.setHover(false);
-        cell.setEnabled(false);
-      });
-    }
-
+  const displayBoard = () => {
     p.translate(gameState.board.position.x, gameState.board.position.y);
 
     gameState.board.cells.map((row, rowIndex) => {
@@ -206,13 +210,17 @@ const sketch = (p: p5Instance) => {
         cell.display();
       });
     });
+  };
 
-    const cellArr = [
-      gameState.board.cells[0][0],
-      gameState.board.cells[1][1],
-      gameState.board.cells[2][2]
-    ];
-    drawLine(cellArr);
+  p.draw = () => {
+    if (gameState.winner) {
+      gameState.board.cells.flat().forEach((cell) => {
+        cell.setHover(false);
+        cell.setEnabled(false);
+      });
+    }
+
+    displayBoard();
 
     if (gameState.winner) {
       drawWinningRow();

@@ -6,6 +6,7 @@ declare module '*.css';
 declare global {
   type p5Instance = p5 & {
     gameState: GameStateProps;
+    updateGameState: () => void;
   };
 
   type RGB = [number, number, number];
