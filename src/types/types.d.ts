@@ -8,6 +8,5 @@ export type GameStateProps = {
   currentPlayer: Player;
   winner?: {
     player: Player;
-    cells: Cell[];
   };
 };

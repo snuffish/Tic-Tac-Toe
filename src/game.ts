@@ -12,7 +12,58 @@ const BOARD_PADDING = 10;
 const CANVAS_WIDTH = BOARD_WIDTH + 100;
 const CANVAS_HEIGHT = BOARD_HEIGHT + 100;
 
-const sketch = (p: p5) => {
+export const checkGameStatus = (
+  gameState: GameStateProps
+): GameStateProps['winner'] | null => {
+  const horizontalCheck = (row: number, player: Player) =>
+    [0, 1, 2].every(
+      (col) => gameState.board.cells[row][col].markedByPlayer === player
+    );
+
+  const verticalCheck = (col: number, player: Player) =>
+    [0, 1, 2].every(
+      (row) => gameState.board.cells[row][col].markedByPlayer === player
+    );
+
+  const diagonalCheck = (player: Player) => {
+    const topLeftToBottomRight = [0, 1, 2].every(
+      (i) => gameState.board.cells[i][i].markedByPlayer === player
+    );
+    const topRightToBottomLeft = [0, 1, 2].every(
+      (i) => gameState.board.cells[i][2 - i].markedByPlayer === player
+    );
+    
+    return topLeftToBottomRight || topRightToBottomLeft;
+  }
+
+  for (const player of ['player1', 'player2'] as const) {
+    for (let row = 0; row <= 2; row++) {
+      if (horizontalCheck(row, player)) {
+        return {
+          player
+        }
+      }
+    }
+
+    for (let col = 0; col <= 2; col++) {
+      if (verticalCheck(col, player)) {
+        return {
+          player
+        }
+      }
+    }
+
+    if (diagonalCheck(player)) {
+      return {
+        player
+      }
+    }
+  }
+
+  return null;
+};
+
+const sketch = (p: p5Instance) => {
   p.setup = () => {
     p.createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
     p.background(240);
@@ -30,38 +81,12 @@ const sketch = (p: p5) => {
     }
   };
 
+  // @ts-ignore - Expose gameState to the p5 instance for testing purposes
+  p.gameState = gameState;
+
   const nextTurn = () => {
     gameState.currentPlayer =
       gameState.currentPlayer === 'player1' ? 'player2' : 'player1';
-  };
-
-  const checkGameStatus = (): { winner: Player; cells: Cell[] } | null => {
-    const checkBoard = (player: Player) => {
-      const cells = gameState.board.cells
-        .flat()
-        .filter((cell) => cell.markedByPlayer === player);
-      const magicNumberSum = cells.reduce(
-        (acc, cell) => acc + cell.magicNumber,
-        0
-      );
-
-      return {
-        magicNumberSum,
-        cells
-      };
-    };
-
-    const p1 = checkBoard('player1');
-    if (p1.magicNumberSum === 15) {
-      return { winner: 'player1', cells: p1.cells };
-    }
-
-    const p2 = checkBoard('player2');
-    if (p2.magicNumberSum === 15) {
-      return { winner: 'player2', cells: p2.cells };
-    }
-
-    return null;
   };
 
   const getCellByMousePosition = () => {
@@ -100,11 +125,10 @@ const sketch = (p: p5) => {
       cell.setMarkedByPlayer(gameState.currentPlayer);
       gameState.board.cells[row][col] = cell;
 
-      const status = checkGameStatus();
+      const status = checkGameStatus(gameState);
       if (status) {
         gameState.winner = {
-          player: status.winner,
-          cells: status.cells
+          player: status.winner
         };
       } else {
         nextTurn();
@@ -161,7 +185,7 @@ const sketch = (p: p5) => {
       return;
     }
 
-    const { cells } = gameState.winner;
+    const { player } = gameState.winner;
   };
 
   p.draw = () => {
@@ -198,5 +222,6 @@ const sketch = (p: p5) => {
 };
 
 export function mountSketch(container?: HTMLElement) {
+  // @ts-ignore
   return new p5(sketch, container);
 }
