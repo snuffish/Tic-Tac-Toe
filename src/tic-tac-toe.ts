@@ -88,8 +88,9 @@ const sketch = (p: p5Instance) => {
 
   const gameState: GameStateProps = {
     currentPlayer: 'player1',
+    textLabel: '',
     board: {
-      position: { x: 20, y: 40 },
+      position: p.createVector(20, 40),
       cells: [
         [cell(p, 2), cell(p, 7), cell(p, 6)],
         [cell(p, 9), cell(p, 5), cell(p, 1)],
@@ -101,11 +102,20 @@ const sketch = (p: p5Instance) => {
   p.gameState = gameState;
   p.updateGameState = updateGameState;
 
-
   p.setup = () => {
     p.createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
     p.background(240);
-    
+
+    window.p = p;
+
+    // gameState.board.cells[0][0].setMarkedByPlayer('player1');
+    // gameState.board.cells[1][1].setMarkedByPlayer('player1');
+    // gameState.board.cells[2][2].setMarkedByPlayer('player1');
+
+    // gameState.board.cells[0][1].setMarkedByPlayer('player1');
+    // gameState.board.cells[1][1].setMarkedByPlayer('player1');
+    // gameState.board.cells[2][1].setMarkedByPlayer('player1');
+
     // gameState.board.cells[0][0].setMarkedByPlayer('player1');
     // gameState.board.cells[0][1].setMarkedByPlayer('player1');
     // gameState.board.cells[0][2].setMarkedByPlayer('player1');
@@ -114,6 +124,8 @@ const sketch = (p: p5Instance) => {
   const nextTurn = () => {
     gameState.currentPlayer =
       gameState.currentPlayer === 'player1' ? 'player2' : 'player1';
+
+    gameState.textLabel = `It's ${gameState.currentPlayer}:s turn`;
   };
 
   const getCellByMousePosition = () => {
@@ -176,27 +188,39 @@ const sketch = (p: p5Instance) => {
     cell.setHover(true);
   };
 
-  const drawLine = (cells: Cell[]) => {
-    const xArr = cells.map((cell) => cell.position.x);
-    const yArr = cells.map((cell) => cell.position.y);
-
-    p.push();
-    p.strokeWeight(3);
-    // p.line(
-    //   fromCell.position.x,
-    //   fromCell.position.y,
-    //   toCell.position.x,
-    //   toCell.position.y
-    // );
-    p.pop();
-  };
-
   const drawWinningRow = () => {
     if (!gameState.winner) {
       return;
     }
 
-    const { player } = gameState.winner;
+    const { player, cells } = gameState.winner;
+
+    const firstCell = cells[0];
+    const lastCell = cells[cells.length - 1];
+
+    p.push();
+    p.noFill();
+    p.strokeWeight(5);
+    p.stroke('red');
+
+    const d = firstCell.centerOriginPosition.sub(lastCell.centerOriginPosition);
+    console.log(d);
+
+    p.line(
+      firstCell.centerOriginPosition.x,
+      firstCell.centerOriginPosition.y,
+      lastCell.centerOriginPosition.x,
+      lastCell.centerOriginPosition.y
+    );
+    p.pop();
+  };
+
+  const drawTextLabel = () => {
+    p.push();
+    p.translate(0, BOARD_HEIGHT + CELL_SIZE / 2);
+    p.textAlign('center');
+    p.text(gameState.textLabel, 0, 0, BOARD_WIDTH);
+    p.pop();
   };
 
   const displayBoard = () => {
@@ -221,15 +245,17 @@ const sketch = (p: p5Instance) => {
     }
 
     displayBoard();
+    drawTextLabel();
 
     if (gameState.winner) {
       drawWinningRow();
-      p.text('WINNER', 50, 50);
+
+      gameState.textLabel = `Winner: ${gameState.winner.player}`;
     }
   };
 };
 
-export function mountSketch(container?: HTMLElement) {
+export function mountTicTacToe(container?: HTMLElement) {
   // @ts-ignore
   return new p5(sketch, container);
 }

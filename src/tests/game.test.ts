@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, suite, test } from 'vitest';
-import { checkGameStatus, mountSketch } from '../game.ts';
+import { checkGameStatus, mountTicTacToe } from '../game.ts';
 import p5 from 'p5';
 
 suite('Tic-Tac-Toe Game', () => {
@@ -20,7 +20,7 @@ suite('Tic-Tac-Toe Game', () => {
     document.body.appendChild(container);
 
     // Mount the sketch
-    p5Instance = mountSketch(container) as p5Instance;
+    p5Instance = mountTicTacToe(container) as p5Instance;
 
     // Check if instance was created
     expect(p5Instance).toBeDefined();

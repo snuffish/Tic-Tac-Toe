@@ -9,6 +9,10 @@ declare global {
     updateGameState: () => void;
   };
 
+  interface Window {
+    p: p5Instance;
+  }
+
   type RGB = [number, number, number];
   type Color = 'NONE' | 'RED' | 'GREEN' | 'BLUE';
 

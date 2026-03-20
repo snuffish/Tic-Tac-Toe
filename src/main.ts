@@ -1,6 +1,6 @@
 // @ts-ignore
 import './style.css'
-import { mountSketch } from './game.ts'
+import { mountSnake } from './snake.ts';
 
 const app = document.querySelector<HTMLDivElement>('#app')
 
@@ -16,4 +16,5 @@ if (!container) {
     throw new Error('p5 container not found')
 }
 
-mountSketch(container)
+// mountTicTacToe(container)
+mountSnake(container)

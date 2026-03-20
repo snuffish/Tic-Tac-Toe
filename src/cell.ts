@@ -2,7 +2,7 @@ import { CELL_SIZE } from './game.ts';
 import type p5 from 'p5';
 
 export type CellStateProps = {
-  position: p5.Vector,
+  position: p5.Vector;
   enabled: boolean;
   markedByPlayer: Player | null;
   hover: boolean;
@@ -32,9 +32,9 @@ export const cell = (p: p5Instance, magicNumber: number) => {
     }
 
     if (state.markedByPlayer === 'player1') {
-      drawX(p, state.position.x, state.position.y);
+      drawX(p, state.position);
     } else {
-      drawO(p, state.position.x, state.position.y);
+      drawO(p, state.position);
     }
   };
 
@@ -49,7 +49,7 @@ export const cell = (p: p5Instance, magicNumber: number) => {
 
     state.markedByPlayer = player;
 
-    p.updateGameState()
+    p.updateGameState();
   };
 
   const setHover = (hover: boolean) => {
@@ -60,13 +60,23 @@ export const cell = (p: p5Instance, magicNumber: number) => {
     state.enabled = enabled;
   };
 
+  const getCenterOriginPosition = () => {
+    return p.createVector(
+      state.position.x + CELL_SIZE / 2,
+      state.position.y + CELL_SIZE / 2
+    );
+  };
+
   return {
     magicNumber,
+    get centerOriginPosition() {
+      return getCenterOriginPosition()
+    },
     setMarkedByPlayer,
     setEnabled,
     setHover,
     get position() {
-      return { x: state.position.x, y: state.position.y };
+      return state.position;
     },
     isHover() {
       return state.hover;
@@ -79,9 +89,9 @@ export const cell = (p: p5Instance, magicNumber: number) => {
   } as const;
 };
 
-const drawX = (p: p5Instance, x: number, y: number) => {
+const drawX = (p: p5Instance, position: p5.Vector) => {
   p.push();
-  p.translate(x, y);
+  p.translate(position);
 
   const centerOrigin = CELL_SIZE / 2;
   const originOffset = centerOrigin / 2;
@@ -103,9 +113,9 @@ const drawX = (p: p5Instance, x: number, y: number) => {
   p.pop();
 };
 
-const drawO = (p: p5Instance, x: number, y: number) => {
+const drawO = (p: p5Instance, position: p5.Vector) => {
   p.push();
-  p.translate(x, y);
+  p.translate(position);
 
   p.stroke('blue');
 

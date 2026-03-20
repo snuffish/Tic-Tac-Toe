@@ -1,8 +1,10 @@
+import p5 from 'p5';
 import type { Cell, cell } from '../cell.ts';
 
 export type GameStateProps = {
+  textLabel: string
   board: {
-    position: { x: number; y: number };
+    position: p5.Vector;
     cells: Cell[][];
   };
   currentPlayer: Player;
