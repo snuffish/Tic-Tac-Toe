@@ -1,12 +1,13 @@
 import p5 from 'p5';
 import type { BulletParticleSystem } from '../particles/bullet.ts';
+import type { Actor } from './actor.ts';
 
 type ShipArgs = {
   p: p5;
-  bulletParticleSystem: BulletParticleSystem
+  bulletParticleSystem: BulletParticleSystem;
 };
 
-export class Ship {
+export class Ship implements Actor {
   p: p5;
   position!: p5.Vector;
   size = 50;
