@@ -7,7 +7,7 @@ declare module '*.css';
 declare global {
   type p5Instance = p5 & {
     gameState?: GameStateProps;
-    particleSystem?: ParticleSystem;
+    particleSystems?: ParticleSystem[];
   };
 
   interface Window {

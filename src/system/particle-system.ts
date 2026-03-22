@@ -2,7 +2,7 @@ import { Particle } from './particle.ts';
 import p5 from 'p5';
 
 export class ParticleSystem {
-  protected p;
+  public p;
   public position;
   protected maxParticles;
   protected emitting = false;
@@ -23,24 +23,18 @@ export class ParticleSystem {
   }
 
   protected emit() {
-    if (!this.emitting && this.particles.length >= this.maxParticles) {
+    if (!this.emitting || this.particles.length >= this.maxParticles) {
       return;
     }
 
-    const par = new Particle(this.p, this.origin.x, this.origin.y);
-    par.applyForce(
-      this.p.createVector(this.p.random(-1, 1), this.p.random(-2, 0))
-    );
+    const par = new Particle(this);
     this.particles.push(par);
   }
 
-  protected removeDeadParticles() {
-    this.particles = this.particles.filter((par) => !par.isDead());
-  }
-
   protected update() {
-    this.removeDeadParticles();
     this.emit();
+
+    this.particles.forEach((par) => par.update())
   }
 
   public run() {
@@ -63,7 +57,6 @@ export class ParticleSystem {
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const par = this.particles[i];
 
-      par.update();
       par.display();
     }
   }

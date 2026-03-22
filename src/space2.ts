@@ -8,12 +8,17 @@ const sketch = (p: p5Instance) => {
   const particleSystems: ParticleSystem[] = [];
 
   p.setup = () => {
+    p.particleSystems = particleSystems
     window.p = p;
 
     p.createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
     p.angleMode(p.DEGREES);
 
-    particleSystems.push(new ParticleSystem(p, 300, 100));
+    particleSystems.push(new ParticleSystem(p, 100, 100, 100));
+    particleSystems.push(new ParticleSystem(p, 200, 100, 100));
+    particleSystems.push(new ParticleSystem(p, 300, 100, 100));
+    particleSystems.push(new ParticleSystem(p, 400, 100, 100));
+    particleSystems.push(new ParticleSystem(p, 500, 100, 100));
   };
 
   p.draw = () => {
