@@ -204,7 +204,6 @@ const sketch = (p: p5Instance) => {
     p.stroke('red');
 
     const d = firstCell.centerOriginPosition.sub(lastCell.centerOriginPosition);
-    console.log(d);
 
     p.line(
       firstCell.centerOriginPosition.x,

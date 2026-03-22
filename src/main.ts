@@ -1,6 +1,6 @@
 // @ts-ignore
 import './style.css'
-import { mountSnake } from './snake.ts';
+import { mountSpace } from './space2.ts';
 
 const app = document.querySelector<HTMLDivElement>('#app')
 
@@ -16,5 +16,4 @@ if (!container) {
     throw new Error('p5 container not found')
 }
 
-// mountTicTacToe(container)
-mountSnake(container)
+mountSpace(container)

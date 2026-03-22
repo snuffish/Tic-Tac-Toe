@@ -1,0 +1,81 @@
+import p5 from 'p5';
+
+const gravity = new p5.Vector(0, 0.1);
+
+export class Particle {
+  private p;
+  private position;
+  public r;
+
+  public velocity;
+  public acceleration;
+
+  private angle = 0;
+
+  private isHit = false;
+  private lifeSpan = 255;
+
+  public color: p5.Color | null = null;
+
+  constructor(p: p5, x: number, y: number, r: number = 16) {
+    this.p = p;
+    this.velocity = p.createVector(0, 0);
+    this.acceleration = p.createVector(0, 0);
+    this.position = p.createVector(x, y);
+    this.r = r;
+
+    this.color = p.color('#000')
+  }
+
+  public checkHit(other: Particle) {
+    if (this === other) {
+      return;
+    }
+
+    const d = this.position.dist(other.position);
+    this.isHit = d < this.r + other.r;
+    other.isHit = this.isHit;
+  }
+
+  public applyForce(force: p5.Vector) {
+    this.acceleration.add(force);
+  }
+
+  public isDead() {
+    return this.lifeSpan <= 0;
+  }
+
+  public update() {
+    this.acceleration.add(gravity);
+    this.velocity.add(this.acceleration);
+    this.position.add(this.velocity);
+
+    this.lifeSpan -= 2.5;
+    this.angle += 2;
+
+    this.acceleration.mult(0);
+  }
+
+  public display() {
+    this.p.push();
+
+    // this.p.stroke(0, this.lifeSpan);
+    // this.p.fill(0, this.lifeSpan);
+    // this.p.circle(this.position.x, this.position.y, 8);
+
+    // this.p.strokeWeight(4);
+    // this.p.fill(0, 255, 0, this.lifeSpan);
+
+    this.p.translate(this.position);
+    this.p.rotate(this.angle);
+    this.p.stroke(0, this.lifeSpan);
+    console.log('color===>', this.color);
+    if (this.color !== null) {
+      this.p.fill(this.color);
+    }
+    // this.p.fill(0, this.lifeSpan);
+    this.p.circle(0, 0, this.r);
+
+    this.p.pop();
+  }
+}
