@@ -1,6 +1,6 @@
 import p5 from 'p5';
 import type { GameStateProps } from './types';
-import type { ParticleSystem } from '../system/particle-system.ts';
+import type { ParticleSystem } from '../particles/particle-system.ts';
 
 declare module '*.css';
 
