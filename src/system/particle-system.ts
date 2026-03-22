@@ -10,14 +10,10 @@ export class ParticleSystem {
 
   private particles: Particle[] = [];
 
-  colorPicker;
-
   constructor(p: p5, x: number, y: number, maxParticles = 100) {
     this.p = p;
     this.position = p.createVector(x, y);
     this.maxParticles = maxParticles;
-
-    this.colorPicker = p.createColorPicker('#000');
   }
 
   get origin() {
@@ -66,8 +62,6 @@ export class ParticleSystem {
 
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const par = this.particles[i];
-
-      par.color = this.p.color(this.colorPicker.value().toString());
 
       par.update();
       par.display();

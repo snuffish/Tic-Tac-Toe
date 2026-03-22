@@ -15,7 +15,7 @@ export class Particle {
   private isHit = false;
   private lifeSpan = 255;
 
-  public color: p5.Color | null = null;
+  public color: p5.Vector;
 
   constructor(p: p5, x: number, y: number, r: number = 16) {
     this.p = p;
@@ -24,7 +24,11 @@ export class Particle {
     this.position = p.createVector(x, y);
     this.r = r;
 
-    this.color = p.color('#000')
+    this.color = this.p.createVector(
+      this.p.random(-1, 255),
+      this.p.random(-1, 255),
+      this.p.random(-1, 255)
+    );
   }
 
   public checkHit(other: Particle) {
@@ -59,21 +63,10 @@ export class Particle {
   public display() {
     this.p.push();
 
-    // this.p.stroke(0, this.lifeSpan);
-    // this.p.fill(0, this.lifeSpan);
-    // this.p.circle(this.position.x, this.position.y, 8);
-
-    // this.p.strokeWeight(4);
-    // this.p.fill(0, 255, 0, this.lifeSpan);
-
     this.p.translate(this.position);
     this.p.rotate(this.angle);
     this.p.stroke(0, this.lifeSpan);
-    console.log('color===>', this.color);
-    if (this.color !== null) {
-      this.p.fill(this.color);
-    }
-    // this.p.fill(0, this.lifeSpan);
+    this.p.fill(this.color.x, this.color.y, this.color.z, this.lifeSpan);
     this.p.circle(0, 0, this.r);
 
     this.p.pop();

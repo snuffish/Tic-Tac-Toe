@@ -17,11 +17,11 @@ const sketch = (p: p5Instance) => {
   };
 
   p.draw = () => {
-    p.background(150);
+    p.background(0);
 
-    // if (p.mouseIsPressed) {
-    //   particleSystems[0].position.set(p.mouseX, p.mouseY);
-    // }
+    if (p.mouseIsPressed) {
+      particleSystems[0].position.set(p.mouseX, p.mouseY);
+    }
 
     particleSystems.forEach((particleSystem) => {
       particleSystem.run()
