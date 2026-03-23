@@ -16,6 +16,7 @@ export class ComponentsManager {
     if (component instanceof ParticleSystem) {
       this.particleSystems.push(component);
     } else {
+      component.onRegister?.(this.p);
       this.components.push(component);
     }
 
@@ -24,10 +25,10 @@ export class ComponentsManager {
 
   public run() {
     this.components.forEach((component) => {
-      component.update(this.p);
+      component.onUpdate(this.p);
 
       this.p.push();
-      component.display(this.p);
+      component.onDisplay(this.p);
       this.p.pop();
     });
 

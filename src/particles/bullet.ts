@@ -42,12 +42,10 @@ export class BulletParticleSystem extends ParticleSystem {
   }
 
   protected onDisplay(emitter: Emitter) {
-    this.p.push();
     this.p.translate(emitter.position);
     this.p.noFill();
     this.p.stroke('yellow');
     this.p.circle(0, 0, 16);
-    this.p.pop();
   }
 
   protected createParticle(emitter: Emitter): Particle {

@@ -1,8 +1,6 @@
 import p5 from 'p5';
-import { ParticleSystem } from './particles/particle-system.ts';
 import { BulletParticleSystem } from './particles/bullet.ts';
 import { Ship } from './actors/ship.ts';
-import type { Actor } from './actors/actor.ts';
 import { Alien } from './actors/alien.ts';
 import { ComponentsManager } from './managers/components.ts';
 import { HudManager } from './managers/hud.ts';

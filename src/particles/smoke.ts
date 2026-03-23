@@ -18,16 +18,12 @@ export class Smoke extends Particle {
   }
 
   display() {
-    this.p.push();
-
     this.p.translate(this.position);
     this.p.rotate(this.angle);
     this.p.stroke(0, this.lifeSpan);
     this.p.fill(255, this.lifeSpan);
     this.p.scale(this.lifeSpan / 255);
     // this.p.circle(0, 0, this.r);
-
-    this.p.pop();
   }
 }
 

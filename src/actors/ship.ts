@@ -1,12 +1,12 @@
 import p5 from 'p5';
 import type { BulletParticleSystem } from '../particles/bullet.ts';
-import { Actor } from './actor.ts';
+import type { IComponent } from '../types/types';
 
 type ShipArgs = {
   bulletParticleSystem: BulletParticleSystem;
 };
 
-export class Ship extends Actor {
+export class Ship implements IComponent {
   position!: p5.Vector;
   size = 50;
 
@@ -14,12 +14,11 @@ export class Ship extends Actor {
   rightGun;
 
   constructor({ bulletParticleSystem }: ShipArgs) {
-    super();
     this.leftGun = bulletParticleSystem.createEmitter('leftGun');
     this.rightGun = bulletParticleSystem.createEmitter('rightGun');
   }
 
-  update(p: p5) {
+  onUpdate(p: p5) {
     const mouseVec = p.createVector(
       p.mouseX - this.size / 2,
       p.mouseY - this.size / 2
@@ -35,7 +34,7 @@ export class Ship extends Actor {
     }
   }
 
-  display(p: p5) {
+  onDisplay(p: p5) {
     p.translate(this.position);
     p.fill(255, 0, 0);
     p.rect(0, 0, this.size);

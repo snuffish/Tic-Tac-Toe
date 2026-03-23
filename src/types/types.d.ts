@@ -15,6 +15,7 @@ export type GameStateProps = {
 };
 
 export interface IComponent {
-  update(p: p5): void;
-  display(p: p5): void;
+  onRegister?(p: p5): void;
+  onUpdate(p: p5): void;
+  onDisplay(p: p5): void;
 }
