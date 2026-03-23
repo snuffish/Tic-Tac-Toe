@@ -7,10 +7,15 @@ export abstract class ParticleSystem {
   public position;
   protected maxParticles;
 
-  private particles: Particle[] = [];
+  public particles: Particle[] = [];
   private emitters: Emitter[] = [];
 
-  protected constructor(p: p5, x: number, y: number, maxParticles = 100) {
+  protected constructor(
+    p: p5,
+    x: number = p.width / 2,
+    y: number = p.height / 2,
+    maxParticles = 100
+  ) {
     this.p = p;
     this.position = p.createVector(x, y);
     this.maxParticles = maxParticles;
@@ -69,6 +74,10 @@ export abstract class ParticleSystem {
       par.display();
     }
 
-    this.emitters.forEach((emitter) => this.onDisplay(emitter));
+    this.emitters.forEach((emitter) => {
+      this.p.push()
+      this.onDisplay(emitter);
+      this.p.pop();
+    });
   }
 }
