@@ -1,6 +1,6 @@
 // @ts-ignore
 import './style.css'
-import { mountSpace } from './space2.ts';
+import { mountMultiShooter } from './multi-shooter.ts';
 
 const app = document.querySelector<HTMLDivElement>('#app')
 
@@ -16,4 +16,4 @@ if (!container) {
     throw new Error('p5 container not found')
 }
 
-mountSpace(container)
+mountMultiShooter(container)
